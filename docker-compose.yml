@@ -1,0 +1,53 @@
+services:
+  pocketbase:
+    build:
+      context: ./pocketbase
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "7070:8090"
+    volumes:
+      - pocketbase_data:/pb_data
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8090/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3333:3333"
+    volumes:
+      - ${OBSIDIAN_VAULT_PATH:-/tmp/vault-placeholder}:/vault:rw
+    environment:
+      - PB_URL=http://pocketbase:8090
+      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL}
+      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OBSIDIAN_SUBFOLDER=${OBSIDIAN_SUBFOLDER:-sub-notes}
+      - BACKEND_URL=http://backend:3333
+      - PORT=3333
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    environment:
+      - VITE_POCKETBASE_URL=http://localhost:7070
+      - VITE_BACKEND_URL=http://localhost:3333
+    depends_on:
+      - backend
+
+volumes:
+  pocketbase_data:

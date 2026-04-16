@@ -1,0 +1,53 @@
+{
+  "appId": "com.subnotes.app",
+  "productName": "SubNotes",
+  "afterSign": "scripts/after-sign-hook.cjs",
+  "directories": {
+    "output": "release/${version}"
+  },
+  "files": [
+    "dist",
+    "dist-electron"
+  ],
+  "mac": {
+    "target": ["dmg", "zip"],
+    "category": "public.app-category.productivity",
+    "icon": "public/icon.icns",
+    "identity": null
+  },
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "public/icon.ico",
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
+  },
+  "linux": {
+    "target": ["AppImage", "deb"],
+    "category": "Utility",
+    "icon": "public/icon.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "artifactName": "${productName}-${version}-Setup-${arch}.${ext}"
+  },
+  "portable": {
+    "artifactName": "${productName}-${version}-Portable-${arch}.${ext}"
+  },
+  "msi": {
+    "oneClick": false,
+    "perMachine": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  }
+}

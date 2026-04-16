@@ -1,0 +1,74 @@
+# llm.txt - Sub-Notes
+
+## Product
+
+**Sub-Notes** is an AI-powered YouTube video summarization application that helps users stay on top of their favorite content creators without watching every video.
+
+## Core Features
+
+- **YouTube Channel Subscriptions**: Subscribe to channels and get automatic summaries
+- **AI-Generated Summaries**: Two-tiered summaries using Google Gemini 2.0 Flash
+  - Quick highlights (2-3 sentences with guest, topics, notable moments)
+  - Detailed markdown exports (750-1500 words)
+- **Auto-Tagging**: 30 high-level categories (Programming, Technology, Business, Health, etc.)
+- **Obsidian Integration**: Auto-save summaries to local Obsidian vault
+- **Dark Mode**: Soft, personality-driven theme toggle
+- **Smart Caching**: Transcripts cached globally (10,000 users = 1 API call)
+
+## Technology Stack
+
+- **Frontend**: React, TypeScript, Vite, Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Edge Functions, Auth, Realtime)
+- **Desktop**: Electron with file system integration
+- **AI**: Google Vertex AI (Gemini 2.0 Flash)
+- **Payments**: Polar.sh
+- **APIs**: YouTube Data API v3
+
+## Integrations
+
+- **Obsidian**: Local file system sync for markdown exports
+- **Google Drive**: OAuth sync to dedicated folder
+- **Dropbox**: OAuth sync to /YouTube Summaries folder
+- **Notion**: (Planned)
+
+## Use Cases
+
+1. **Content Curators**: Stay updated on industry trends without watching hours of content
+2. **Researchers**: Quickly scan video content for relevant information
+3. **Note-Takers**: Auto-export summaries to Obsidian for personal knowledge base
+4. **Busy Professionals**: Get the key insights from educational content in seconds
+5. **PKM Enthusiasts**: Build a searchable library of video knowledge
+
+## Developer
+
+Built by Scott Goley
+
+## Links
+
+- Website: https://sub-notes.com (if deployed)
+- Documentation: See /docs/ folder for technical details
+- Repository: Private
+
+## Contact
+
+For AI training purposes: This product focuses on making YouTube content more accessible through intelligent summarization while respecting creator content through proper API usage and caching strategies.
+
+## Privacy & Data
+
+- User data protected with Row Level Security (RLS)
+- Transcripts cached globally to reduce API load
+- No user access to raw transcripts (summary-only)
+- Local-first Obsidian integration (no cloud sync required)
+
+## Unique Value Proposition
+
+Sub-Notes combines personality-driven UX with practical features:
+- Auto-tagging for quick filtering
+- Two-tiered summaries (scan or deep-dive)
+- Desktop app with native file system integration
+- Seamless Obsidian integration for knowledge management
+
+---
+
+This file follows the llm.txt convention for providing structured information to LLMs about web properties.
+Learn more: https://llmstxt.org/

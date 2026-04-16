@@ -1,0 +1,35 @@
+# robots.txt for Sub-Notes
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin/auth pages
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /settings
+
+# Sitemap location
+Sitemap: https://sub-notes.com/sitemap.xml
+
+# Crawl delay (be nice to our servers)
+Crawl-delay: 1
+
+# Specific bot rules
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /

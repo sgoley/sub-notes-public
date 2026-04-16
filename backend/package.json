@@ -1,0 +1,9 @@
+{
+  "name": "sub-notes-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "pocketbase": "^0.22.0",
+    "youtube-transcript-plus": "^1.2.0"
+  }
+}
