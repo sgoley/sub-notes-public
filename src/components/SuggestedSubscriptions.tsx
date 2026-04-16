@@ -264,11 +264,11 @@ export const SuggestedSubscriptions = ({ onSubscriptionAdded }: SuggestedSubscri
         fetchSuggestions(); // Refresh suggestions
         onSubscriptionAdded?.();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error adding subscription:", error);
-      
-      const errorMessage = error.message || "Failed to add subscription";
-      const errorCode = error.code;
+
+      const errorMessage = error instanceof Error ? error.message : "Failed to add subscription";
+      const errorCode = error instanceof Error && 'code' in error ? (error as { code: string }).code : null;
       
       // Check for subscription limit error
       const isLimitError = errorCode === "SUBSCRIPTION_LIMIT_REACHED" || 

@@ -6,6 +6,14 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getSystemYouTubeApiKey } from './vaultService';
 
+declare global {
+  interface Window {
+    electronAPI?: {
+      fetchTranscript: (videoId: string) => Promise<TranscriptResult>;
+    };
+  }
+}
+
 export interface TranscriptResult {
   success: boolean;
   transcript?: string;
@@ -16,9 +24,9 @@ export interface TranscriptResult {
  * Check if running in Electron environment
  */
 export const isElectron = (): boolean => {
-  const hasAPI = !!(window as any).electronAPI;
+  const hasAPI = !!window.electronAPI;
   console.log('[isElectron] Checking Electron environment:', hasAPI);
-  console.log('[isElectron] window.electronAPI:', (window as any).electronAPI);
+  console.log('[isElectron] window.electronAPI:', window.electronAPI);
   return hasAPI;
 };
 
@@ -28,7 +36,7 @@ export const isElectron = (): boolean => {
 async function fetchTranscriptViaElectron(videoId: string): Promise<TranscriptResult> {
   try {
     console.log(`[TranscriptService] Fetching via Electron for video: ${videoId}`);
-    const result = await (window as any).electronAPI.fetchTranscript(videoId);
+    const result = await window.electronAPI!.fetchTranscript(videoId);
     return result;
   } catch (error) {
     console.error('[TranscriptService] Electron fetch failed:', error);
@@ -115,7 +123,7 @@ export async function processVideoLocally(
   processType: 'dashboard' | 'email',
   onProgress?: (current: number, total: number, videoTitle?: string) => void,
   summaryStyle?: string
-): Promise<{ success: boolean; data?: any; error?: string; videoId?: string; playlistResults?: any[] }> {
+): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string; videoId?: string; playlistResults?: Record<string, unknown>[] }> {
   try {
     console.log('[processVideoLocally] Starting process for:', contentUrl);
     console.log('[processVideoLocally] URL length:', contentUrl.length);
@@ -182,7 +190,7 @@ async function processSubstackContent(
   articleUrl: string,
   processType: 'dashboard' | 'email',
   summaryStyle?: string
-): Promise<{ success: boolean; data?: any; error?: string }> {
+): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }> {
   console.log('[processSubstackContent] Processing Substack article:', articleUrl);
 
   try {
@@ -245,7 +253,7 @@ export async function processArticleWeb(
   contentUrl: string,
   processType: 'dashboard' | 'email',
   summaryStyle?: string
-): Promise<{ success: boolean; data?: any; error?: string }> {
+): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }> {
   return processSubstackContent(contentUrl, processType, summaryStyle);
 }
 
@@ -265,7 +273,7 @@ async function processYouTubeContent(
   videoUrl: string,
   processType: 'dashboard' | 'email',
   summaryStyle?: string
-): Promise<{ success: boolean; data?: any; error?: string; videoId?: string }> {
+): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string; videoId?: string }> {
   try {
     // Extract video ID from URL
     const videoId = extractVideoId(videoUrl);
@@ -429,7 +437,7 @@ async function processYouTubeContent(
 }
 
 function extractVideoId(url: string): string | null {
-  const patterns = [/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\?\/]+)/];
+  const patterns = [/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/];
 
   for (const pattern of patterns) {
     const match = url.match(pattern);
@@ -458,7 +466,7 @@ async function processYouTubePlaylist(
   processType: 'dashboard' | 'email',
   onProgress?: (current: number, total: number, videoTitle?: string) => void,
   summaryStyle?: string
-): Promise<{ success: boolean; playlistResults?: any[]; error?: string }> {
+): Promise<{ success: boolean; playlistResults?: Record<string, unknown>[]; error?: string }> {
   try {
     console.log('[processYouTubePlaylist] Fetching playlist videos:', playlistId);
 

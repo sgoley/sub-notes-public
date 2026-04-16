@@ -49,12 +49,12 @@ export const DetailedTokenUsage = () => {
   const [availableMonths, setAvailableMonths] = useState<Date[]>([]);
 
   useEffect(() => {
-    fetchAvailableMonths();
+    void fetchAvailableMonths();
   }, []);
 
   useEffect(() => {
-    fetchDetailedUsage();
-  }, [selectedMonth]);
+    void fetchDetailedUsage();
+  }, [selectedMonth, fetchAvailableMonths, fetchDetailedUsage]);
 
   const fetchAvailableMonths = async () => {
     try {
@@ -76,8 +76,8 @@ export const DetailedTokenUsage = () => {
       if (data && data.length > 0) {
         // Get unique months
         const uniqueMonths = Array.from(
-          new Set(data.map((d: any) => d.billing_month))
-        ).map((dateStr) => new Date(dateStr as string));
+          new Set(data.map((d: { billing_month: string }) => d.billing_month))
+        ).map((dateStr) => new Date(dateStr));
 
         console.log('[DetailedTokenUsage] Unique months:', uniqueMonths);
         console.log('[DetailedTokenUsage] Current selected month:', selectedMonth);
@@ -136,7 +136,17 @@ export const DetailedTokenUsage = () => {
       console.log('[DetailedTokenUsage] Fetched events:', data?.length || 0);
 
       // Transform the data to match our interface
-      const transformedData = (data || []).map((event: any) => ({
+      const transformedData = (data || []).map((event: {
+        id: string;
+        event_type: string;
+        created_at: string;
+        input_tokens?: number;
+        output_tokens?: number;
+        model_used?: string;
+        total_cost_cents?: number;
+        api_cost_cents?: number;
+        content_summaries?: { content_title: string; content_type: string; content_id: string } | null;
+      }) => ({
         id: event.id,
         event_type: event.event_type,
         created_at: event.created_at,
@@ -172,11 +182,12 @@ export const DetailedTokenUsage = () => {
       case 'created_at':
         comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         break;
-      case 'tokens':
+      case 'tokens': {
         const aTokens = a.input_tokens + a.output_tokens;
         const bTokens = b.input_tokens + b.output_tokens;
         comparison = aTokens - bTokens;
         break;
+      }
       case 'cost':
         comparison = a.total_cost_cents - b.total_cost_cents;
         break;

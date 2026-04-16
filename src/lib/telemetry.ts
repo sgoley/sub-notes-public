@@ -3,16 +3,26 @@
  *
  * This tracks which features users engage with (NOT costs/tokens - that's "Usage Analytics").
  * Telemetry helps understand product usage patterns and is sent to external analytics providers.
- * 
+ *
  * Note: This is separate from "Usage Analytics" which tracks tokens, costs, and processing metrics
  * shown to users in their dashboard. Usage Analytics is stored in the database and visible to users.
- * 
+ *
  * Telemetry is for product insights only and supports multiple providers:
  * - Plausible Analytics (privacy-friendly, GDPR compliant)
  * - Google Analytics 4
  * - PostHog
  * - Custom endpoints
  */
+
+declare global {
+  interface Window {
+    plausible?: (event: string, options?: Record<string, unknown>) => void;
+    gtag?: (command: string, event: string, options?: Record<string, unknown>) => void;
+    posthog?: {
+      capture: (event: string, options?: Record<string, unknown>) => void;
+    };
+  }
+}
 
 export interface OutboundClickEvent {
   videoId: string;
@@ -28,8 +38,8 @@ export function trackPageView(page: string): void {
   console.log(`[Telemetry] Page view: ${page}`);
 
   // Plausible Analytics
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('pageview', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('pageview', {
       props: {
         url: window.location.pathname,
         title: page,
@@ -38,16 +48,16 @@ export function trackPageView(page: string): void {
   }
 
   // Google Analytics 4
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'page_view', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'page_view', {
       page_title: page,
       page_location: window.location.href,
     });
   }
 
   // PostHog
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('$pageview', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('$pageview', {
       $current_url: window.location.href,
       page_title: page,
     });
@@ -70,8 +80,8 @@ export function trackOutboundYouTubeClick(event: OutboundClickEvent): void {
 
   // Send to analytics providers if available
   // Plausible Analytics (if configured)
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('Outbound YouTube Click', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('Outbound YouTube Click', {
       props: {
         videoId: event.videoId,
         channelTitle: event.channelTitle || 'Unknown',
@@ -81,8 +91,8 @@ export function trackOutboundYouTubeClick(event: OutboundClickEvent): void {
   }
 
   // Google Analytics 4 (if configured)
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'outbound_youtube_click', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'outbound_youtube_click', {
       video_id: event.videoId,
       video_title: event.videoTitle,
       channel_title: event.channelTitle || 'Unknown',
@@ -91,8 +101,8 @@ export function trackOutboundYouTubeClick(event: OutboundClickEvent): void {
   }
 
   // PostHog (if configured)
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('outbound_youtube_click', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('outbound_youtube_click', {
       video_id: event.videoId,
       video_title: event.videoTitle,
       channel_title: event.channelTitle || 'Unknown',
@@ -137,8 +147,8 @@ export function trackSummaryDownload(event: SummaryDownloadEvent): void {
     channelTitle: event.channelTitle,
   });
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('Summary Download', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('Summary Download', {
       props: {
         videoId: event.videoId,
         videoTitle: event.videoTitle,
@@ -147,16 +157,16 @@ export function trackSummaryDownload(event: SummaryDownloadEvent): void {
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'summary_download', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'summary_download', {
       video_id: event.videoId,
       video_title: event.videoTitle,
       channel_title: event.channelTitle || 'Unknown',
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('summary_download', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('summary_download', {
       video_id: event.videoId,
       video_title: event.videoTitle,
       channel_title: event.channelTitle || 'Unknown',
@@ -170,21 +180,21 @@ export function trackSummaryDownload(event: SummaryDownloadEvent): void {
 export function trackVideoProcess(videoId: string, processType: 'dashboard' | 'email'): void {
   console.log('[Telemetry] Video process:', { videoId, processType });
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('Video Process', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('Video Process', {
       props: { videoId, processType },
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'video_process', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'video_process', {
       video_id: videoId,
       process_type: processType,
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('video_process', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('video_process', {
       video_id: videoId,
       process_type: processType,
     });
@@ -203,8 +213,8 @@ export interface SubscriptionAddedEvent {
 export function trackSubscriptionAdded(event: SubscriptionAddedEvent): void {
   console.log('[Telemetry] Subscription added:', event);
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('Subscription Added', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('Subscription Added', {
       props: {
         channelId: event.channelId,
         channelTitle: event.channelTitle,
@@ -212,15 +222,15 @@ export function trackSubscriptionAdded(event: SubscriptionAddedEvent): void {
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'subscription_added', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'subscription_added', {
       channel_id: event.channelId,
       channel_title: event.channelTitle,
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('subscription_added', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('subscription_added', {
       channel_id: event.channelId,
       channel_title: event.channelTitle,
     });
@@ -244,22 +254,22 @@ export function trackStorageIntegration(event: StorageIntegrationEvent): void {
     ? 'Storage Integration Connected'
     : 'Storage Integration Disconnected';
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible(eventName, {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible(eventName, {
       props: {
         integration_type: event.integrationType,
       },
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', event.action === 'connected' ? 'integration_connected' : 'integration_disconnected', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', event.action === 'connected' ? 'integration_connected' : 'integration_disconnected', {
       integration_type: event.integrationType,
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture(event.action === 'connected' ? 'integration_connected' : 'integration_disconnected', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture(event.action === 'connected' ? 'integration_connected' : 'integration_disconnected', {
       integration_type: event.integrationType,
     });
   }
@@ -278,8 +288,8 @@ export interface VideoViewedEvent {
 export function trackVideoViewed(event: VideoViewedEvent): void {
   console.log('[Telemetry] Video viewed:', event);
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('Video Viewed', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('Video Viewed', {
       props: {
         contentType: event.contentType,
         source: event.source,
@@ -287,16 +297,16 @@ export function trackVideoViewed(event: VideoViewedEvent): void {
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'video_viewed', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'video_viewed', {
       video_id: event.videoId,
       content_type: event.contentType,
       source: event.source,
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('video_viewed', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('video_viewed', {
       video_id: event.videoId,
       video_title: event.videoTitle,
       content_type: event.contentType,
@@ -324,8 +334,8 @@ export interface TierSelectedEvent {
 export function trackTierSelected(event: TierSelectedEvent): void {
   console.log('[Telemetry] Tier selected:', event);
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('Tier Selected', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('Tier Selected', {
       props: {
         tier_level: event.tierLevel,
         tier_name: event.tierName,
@@ -335,8 +345,8 @@ export function trackTierSelected(event: TierSelectedEvent): void {
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'tier_selected', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'tier_selected', {
       tier_level: event.tierLevel,
       tier_name: event.tierName,
       price: event.price,
@@ -345,8 +355,8 @@ export function trackTierSelected(event: TierSelectedEvent): void {
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('tier_selected', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('tier_selected', {
       tier_level: event.tierLevel,
       tier_name: event.tierName,
       price: event.price,
@@ -369,8 +379,8 @@ export interface CheckoutStartedEvent {
 export function trackCheckoutStarted(event: CheckoutStartedEvent): void {
   console.log('[Telemetry] Checkout started:', event);
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('Checkout Started', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('Checkout Started', {
       props: {
         tier_level: event.tierLevel,
         tier_name: event.tierName,
@@ -379,8 +389,8 @@ export function trackCheckoutStarted(event: CheckoutStartedEvent): void {
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'begin_checkout', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'begin_checkout', {
       tier_level: event.tierLevel,
       tier_name: event.tierName,
       value: event.price,
@@ -388,8 +398,8 @@ export function trackCheckoutStarted(event: CheckoutStartedEvent): void {
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('checkout_started', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('checkout_started', {
       tier_level: event.tierLevel,
       tier_name: event.tierName,
       price: event.price,
@@ -411,8 +421,8 @@ export interface PurchaseCompletedEvent {
 export function trackPurchaseCompleted(event: PurchaseCompletedEvent): void {
   console.log('[Telemetry] Purchase completed:', event);
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('Purchase Completed', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('Purchase Completed', {
       props: {
         tier_level: event.tierLevel,
         tier_name: event.tierName,
@@ -421,8 +431,8 @@ export function trackPurchaseCompleted(event: PurchaseCompletedEvent): void {
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'purchase', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'purchase', {
       tier_level: event.tierLevel,
       tier_name: event.tierName,
       value: event.price,
@@ -430,8 +440,8 @@ export function trackPurchaseCompleted(event: PurchaseCompletedEvent): void {
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('purchase_completed', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('purchase_completed', {
       tier_level: event.tierLevel,
       tier_name: event.tierName,
       price: event.price,
@@ -457,8 +467,8 @@ export interface FeatureRequestEvent {
 export function trackFeatureRequest(event: FeatureRequestEvent): void {
   console.log('[Telemetry] Feature request:', event);
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('Feature Request', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('Feature Request', {
       props: {
         action: event.action,
         category: event.category || 'unknown',
@@ -466,14 +476,14 @@ export function trackFeatureRequest(event: FeatureRequestEvent): void {
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'feature_request_' + event.action, {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'feature_request_' + event.action, {
       category: event.category,
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('feature_request_' + event.action, {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('feature_request_' + event.action, {
       category: event.category,
       request_id: event.requestId,
     });
@@ -492,8 +502,8 @@ export interface NotificationPreferenceEvent {
 export function trackNotificationPreference(event: NotificationPreferenceEvent): void {
   console.log('[Telemetry] Notification preference:', event);
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('Notification Preference Changed', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('Notification Preference Changed', {
       props: {
         preference_type: event.preferenceType,
         enabled: event.enabled,
@@ -501,15 +511,15 @@ export function trackNotificationPreference(event: NotificationPreferenceEvent):
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'notification_preference_changed', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'notification_preference_changed', {
       preference_type: event.preferenceType,
       enabled: event.enabled,
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('notification_preference_changed', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('notification_preference_changed', {
       preference_type: event.preferenceType,
       enabled: event.enabled,
     });
@@ -528,8 +538,8 @@ export interface ApiKeyEvent {
 export function trackApiKeyManagement(event: ApiKeyEvent): void {
   console.log('[Telemetry] API key management:', event);
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('API Key Management', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('API Key Management', {
       props: {
         action: event.action,
         key_type: event.keyType,
@@ -537,14 +547,14 @@ export function trackApiKeyManagement(event: ApiKeyEvent): void {
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'api_key_' + event.action, {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'api_key_' + event.action, {
       key_type: event.keyType,
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('api_key_' + event.action, {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('api_key_' + event.action, {
       key_type: event.keyType,
     });
   }
@@ -563,23 +573,23 @@ export interface SearchFilterEvent {
 export function trackSearchFilter(event: SearchFilterEvent): void {
   console.log('[Telemetry] Search/Filter:', event);
 
-  if (typeof window !== 'undefined' && (window as any).plausible) {
-    (window as any).plausible('Search Filter Used', {
+  if (typeof window !== 'undefined' && window.plausible) {
+    window.plausible('Search Filter Used', {
       props: {
         type: event.type,
       },
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'search_filter_used', {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'search_filter_used', {
       type: event.type,
       filter_type: event.filterType,
     });
   }
 
-  if (typeof window !== 'undefined' && (window as any).posthog) {
-    (window as any).posthog.capture('search_filter_used', {
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.capture('search_filter_used', {
       type: event.type,
       value: event.value,
       filter_type: event.filterType,
