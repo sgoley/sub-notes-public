@@ -1,5 +1,5 @@
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const MODEL_ID = "gemini-3-flash-preview";
+const MODEL_ID = "gemini-3.1-flash-lite-preview";
 const BASE = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}`;
 
 export interface GeminiUsage {

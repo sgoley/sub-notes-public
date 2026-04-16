@@ -69,7 +69,7 @@ async function processSummary(summaryId: string, pb: Awaited<ReturnType<typeof g
   }
 
   const tokenUsage = {
-    model: "gemini-2.5-flash-preview-04-17",
+    model: "gemini-3.1-flash-lite-preview",
     summary_prompt_tokens: summaryUsage.promptTokens,
     summary_output_tokens: summaryUsage.outputTokens,
     highlights_prompt_tokens: highlightsUsage.promptTokens,
