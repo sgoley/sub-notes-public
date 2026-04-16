@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Simple icon design - you can replace this with your actual logo design -->
+  <rect width="100" height="100" fill="none"/>
+
+  <!-- Example: A note/document icon -->
+  <path d="M25 15 L65 15 L75 25 L75 85 L25 85 Z" fill="#3b82f6" stroke="none"/>
+  <path d="M65 15 L65 25 L75 25" fill="#60a5fa" stroke="none"/>
+
+  <!-- Lines representing text -->
+  <rect x="35" y="35" width="30" height="3" fill="#e0f2fe" rx="1.5"/>
+  <rect x="35" y="45" width="30" height="3" fill="#e0f2fe" rx="1.5"/>
+  <rect x="35" y="55" width="20" height="3" fill="#e0f2fe" rx="1.5"/>
+</svg>
