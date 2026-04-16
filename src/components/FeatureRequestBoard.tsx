@@ -198,11 +198,12 @@ export const FeatureRequestBoard = () => {
       setCategory("other");
       setDialogOpen(false);
       fetchFeatureRequests();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error submitting feature request:", error);
+      const message = error instanceof Error ? error.message : "Failed to submit feature request";
       toast({
         title: "Error",
-        description: error.message || "Failed to submit feature request",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -251,11 +252,12 @@ export const FeatureRequestBoard = () => {
       });
 
       fetchFeatureRequests();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error voting:", error);
+      const message = error instanceof Error ? error.message : "Failed to process vote";
       toast({
         title: "Error",
-        description: error.message || "Failed to process vote",
+        description: message,
         variant: "destructive",
       });
     }

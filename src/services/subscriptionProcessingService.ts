@@ -18,6 +18,18 @@ export interface ProcessingResult {
   errors: number;
 }
 
+interface Subscription {
+  id: string;
+  user_id: string;
+  source_type: 'youtube' | 'substack';
+  source_id: string;
+  source_title: string;
+  source_url: string;
+  last_checked_at: string | null;
+  enabled: boolean;
+  metadata?: Record<string, unknown>;
+}
+
 /**
  * Process all enabled subscriptions for the current user
  * Called on app startup after authentication
@@ -136,7 +148,7 @@ export async function processAllSubscriptions(): Promise<ProcessingResult> {
 /**
  * Process a single YouTube subscription
  */
-async function processYouTubeSubscription(subscription: any): Promise<ProcessingResult> {
+async function processYouTubeSubscription(subscription: Subscription): Promise<ProcessingResult> {
   const result = { contentFound: 0, contentProcessed: 0, errors: 0 };
 
   try {
@@ -313,7 +325,7 @@ async function processYouTubeSubscription(subscription: any): Promise<Processing
 /**
  * Process a single Substack subscription
  */
-async function processSubstackSubscription(subscription: any): Promise<ProcessingResult> {
+async function processSubstackSubscription(subscription: Subscription): Promise<ProcessingResult> {
   const result = { contentFound: 0, contentProcessed: 0, errors: 0 };
 
   try {
@@ -435,14 +447,16 @@ async function processSubstackSubscription(subscription: any): Promise<Processin
 
 // Helper functions for RSS parsing
 
-function parseRssItems(xml: string): Array<{
+interface RssItem {
   title: string;
   link: string;
   description: string;
   published: string;
   author?: string;
-}> {
-  const items: Array<any> = [];
+}
+
+function parseRssItems(xml: string): RssItem[] {
+  const items: RssItem[] = [];
   const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
   let match;
 

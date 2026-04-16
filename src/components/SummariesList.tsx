@@ -149,8 +149,8 @@ export const SummariesList = ({ channelFilter, onSuccess, refreshTrigger }: Summ
   }, [channelFilter, page]);
 
   useEffect(() => {
-    fetchSummaries(true);
-  }, [channelFilter]);
+    void fetchSummaries(true);
+  }, [fetchSummaries, channelFilter]);
 
   // Intersection Observer for infinite scroll
   useEffect(() => {
@@ -159,7 +159,7 @@ export const SummariesList = ({ channelFilter, onSuccess, refreshTrigger }: Summ
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loadingMore) {
-          fetchSummaries(false);
+          void fetchSummaries(false);
         }
       },
       { threshold: 0.1 }
@@ -173,9 +173,9 @@ export const SummariesList = ({ channelFilter, onSuccess, refreshTrigger }: Summ
   // Passive refresh when refreshTrigger changes (without remounting)
   useEffect(() => {
     if (refreshTrigger !== undefined && refreshTrigger > 0) {
-      fetchSummaries(true, true); // silent — avoid flash
+      void fetchSummaries(true, true); // silent — avoid flash
     }
-  }, [refreshTrigger]);
+  }, [refreshTrigger, fetchSummaries]);
 
   // Auto-refresh when there are processing or pending summaries
   useEffect(() => {
@@ -187,11 +187,11 @@ export const SummariesList = ({ channelFilter, onSuccess, refreshTrigger }: Summ
 
     // Poll every 5 seconds when there are items being processed
     const interval = setInterval(() => {
-      fetchSummaries(true, true); // silent — no loading flash
+      void fetchSummaries(true, true); // silent — no loading flash
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [summaries]);
+  }, [summaries, fetchSummaries]);
 
   // Detect processing → completed transitions and mark as unread
   useEffect(() => {
@@ -215,7 +215,12 @@ export const SummariesList = ({ channelFilter, onSuccess, refreshTrigger }: Summ
       setUnreadIds(prev => {
         const next = new Set(prev);
         newlyCompleted.forEach(id => next.add(id));
-        try { localStorage.setItem("summaries-unread", JSON.stringify([...next])); } catch {}
+        try {
+          localStorage.setItem("summaries-unread", JSON.stringify([...next]));
+        } catch (e) {
+          // localStorage may be unavailable in some contexts
+          console.warn('Failed to persist unread summaries', e);
+        }
         return next;
       });
     }
@@ -226,7 +231,11 @@ export const SummariesList = ({ channelFilter, onSuccess, refreshTrigger }: Summ
       if (!prev.has(summaryId)) return prev;
       const next = new Set(prev);
       next.delete(summaryId);
-      try { localStorage.setItem("summaries-unread", JSON.stringify([...next])); } catch {}
+      try {
+        localStorage.setItem("summaries-unread", JSON.stringify([...next]));
+      } catch (e) {
+        console.warn('Failed to persist unread state', e);
+      }
       return next;
     });
   };
@@ -236,7 +245,11 @@ export const SummariesList = ({ channelFilter, onSuccess, refreshTrigger }: Summ
       if (prev.has(summaryId)) return prev;
       const next = new Set(prev);
       next.add(summaryId);
-      try { localStorage.setItem("summaries-unread", JSON.stringify([...next])); } catch {}
+      try {
+        localStorage.setItem("summaries-unread", JSON.stringify([...next]));
+      } catch (e) {
+        console.warn('Failed to persist unread state', e);
+      }
       return next;
     });
   };
