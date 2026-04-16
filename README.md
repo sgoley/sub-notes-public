@@ -30,7 +30,7 @@ docker-compose.yml
 
 **Database**: PocketBase (SQLite) — collections: `subscriptions`, `content_summaries`, `tags`, `content_summary_tags`, `settings`
 
-**AI**: Google Gemini 2.0 Flash via direct REST API
+**AI**: Google Gemini 3.1 Flash Lite via direct REST API
 
 ## Quick Start
 
