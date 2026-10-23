@@ -259,17 +259,6 @@ export default function Download() {
               </CardContent>
             </Card>
 
-            {/* GitHub Release Link (Optional) */}
-            {release.tag_name && (
-              <div className="text-center">
-                <Button
-                  variant="outline"
-                  onClick={() => window.open(`https://github.com/sgoley/sub-notes/releases/tag/${release.tag_name}`, "_blank")}
-                >
-                  View Release on GitHub
-                </Button>
-              </div>
-            )}
           </div>
         ) : null}
 

@@ -33,18 +33,17 @@ export async function handleGenerateSummary(req: Request, summaryId: string): Pr
 async function processSummary(summaryId: string, pb: Awaited<ReturnType<typeof getPB>>) {
   const record = await pb.collection("content_summaries").getOne(summaryId);
 
-  // Fetch transcript if not stored yet
+  // Video records may contain transcripts fetched before English was enforced.
+  // Always fetch the requested English track when processing a video so an old
+  // non-English transcript cannot be silently reused.
   let contentText = record.transcript as string | null;
 
-  if (!contentText || contentText.trim() === "") {
-    if (record.content_type === "video") {
-      console.log(`[generateSummary] Fetching transcript for video: ${record.content_id}`);
-      contentText = await fetchTranscript(record.content_id as string);
-      // Cache transcript
-      await pb.collection("content_summaries").update(summaryId, { transcript: contentText });
-    } else {
-      throw new Error("No transcript/content available for this record");
-    }
+  if (record.content_type === "video") {
+    console.log(`[generateSummary] Fetching English transcript for video: ${record.content_id}`);
+    contentText = await fetchTranscript(record.content_id as string);
+    await pb.collection("content_summaries").update(summaryId, { transcript: contentText });
+  } else if (!contentText || contentText.trim() === "") {
+    throw new Error("No transcript/content available for this record");
   }
 
   const summaryStyle = (record.summary_style as string) || "balanced";
@@ -52,7 +51,8 @@ async function processSummary(summaryId: string, pb: Awaited<ReturnType<typeof g
 
   // Generate summary
   const prompt = buildSummaryPrompt(summaryStyle, contentText);
-  const { text: summaryMarkdown, usage: summaryUsage } = await generateContent(prompt, 65536);
+  const summaryResult = await generateContent(prompt, 8192);
+  const { text: summaryMarkdown, usage: summaryUsage } = summaryResult;
 
   // Generate highlights
   let highlights: string | null = null;
@@ -69,7 +69,8 @@ async function processSummary(summaryId: string, pb: Awaited<ReturnType<typeof g
   }
 
   const tokenUsage = {
-    model: "gemini-3.1-flash-lite-preview",
+    provider: summaryResult.provider,
+    model: summaryResult.model,
     summary_prompt_tokens: summaryUsage.promptTokens,
     summary_output_tokens: summaryUsage.outputTokens,
     highlights_prompt_tokens: highlightsUsage.promptTokens,
