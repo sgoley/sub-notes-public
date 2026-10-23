@@ -1,44 +1,118 @@
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const MODEL_ID = "gemini-3.1-flash-lite-preview";
-const BASE = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}`;
+export type LLMProvider = "gemini" | "openrouter";
 
-export interface GeminiUsage {
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim();
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY?.trim();
+const OPENROUTER_BASE_URL = (process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1").replace(/\/+$/, "");
+
+const DEFAULT_MODELS: Record<LLMProvider, string> = {
+  gemini: "gemini-2.5-flash",
+  openrouter: "openai/gpt-4.1-mini",
+};
+
+export interface LLMUsage {
   promptTokens: number;
   outputTokens: number;
   totalTokens: number;
 }
 
-export interface GeminiResult {
+export interface LLMResult {
   text: string;
-  usage: GeminiUsage;
+  usage: LLMUsage;
+  provider: LLMProvider;
+  model: string;
 }
 
-export async function generateContent(prompt: string, maxOutputTokens = 8192): Promise<GeminiResult> {
-  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
+function getSelection(): { provider: LLMProvider; model: string } {
+  const configuredProvider = (process.env.LLM_PROVIDER || "gemini").trim().toLowerCase();
+  if (configuredProvider !== "gemini" && configuredProvider !== "openrouter") {
+    throw new Error(`Unsupported LLM_PROVIDER: ${configuredProvider}. Use gemini or openrouter.`);
+  }
 
-  const res = await fetch(`${BASE}:generateContent?key=${GEMINI_API_KEY}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens },
-    }),
-  });
+  const provider = configuredProvider as LLMProvider;
+  const model = (process.env.LLM_MODEL || DEFAULT_MODELS[provider]).trim();
+  return { provider, model };
+}
+
+export async function generateContent(prompt: string, maxOutputTokens = 8192): Promise<LLMResult> {
+  const { provider, model } = getSelection();
+  if (provider === "gemini") {
+    return generateViaGemini(prompt, model, maxOutputTokens);
+  }
+  return generateViaOpenRouter(prompt, model, maxOutputTokens);
+}
+
+async function generateViaGemini(prompt: string, model: string, maxOutputTokens: number): Promise<LLMResult> {
+  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is required when LLM_PROVIDER=gemini");
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": GEMINI_API_KEY,
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens },
+      }),
+    }
+  );
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Gemini API error: ${text}`);
+    throw new Error(`Gemini API error (${res.status}): ${await res.text()}`);
   }
 
   const data = await res.json();
   const parts = data?.candidates?.[0]?.content?.parts ?? [];
   const text = parts.map((p: { text?: string }) => p.text ?? "").join("");
-  const usage: GeminiUsage = {
+  const usage: LLMUsage = {
     promptTokens: data?.usageMetadata?.promptTokenCount ?? 0,
     outputTokens: data?.usageMetadata?.candidatesTokenCount ?? 0,
     totalTokens: data?.usageMetadata?.totalTokenCount ?? 0,
   };
-  return { text, usage };
+  return { text, usage, provider: "gemini", model };
+}
+
+async function generateViaOpenRouter(prompt: string, model: string, maxOutputTokens: number): Promise<LLMResult> {
+  if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY is required when LLM_PROVIDER=openrouter");
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+  };
+  if (process.env.OPENROUTER_SITE_URL) headers["HTTP-Referer"] = process.env.OPENROUTER_SITE_URL;
+  if (process.env.OPENROUTER_APP_NAME) headers["X-Title"] = process.env.OPENROUTER_APP_NAME;
+
+  const res = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+      max_tokens: maxOutputTokens,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`OpenRouter API error (${res.status}): ${await res.text()}`);
+  }
+
+  const data = await res.json();
+  const content = data?.choices?.[0]?.message?.content;
+  const text =
+    typeof content === "string"
+      ? content
+      : Array.isArray(content)
+      ? content.map((part: { text?: string }) => part?.text ?? "").join("")
+      : "";
+  const usage: LLMUsage = {
+    promptTokens: data?.usage?.prompt_tokens ?? 0,
+    outputTokens: data?.usage?.completion_tokens ?? 0,
+    totalTokens: data?.usage?.total_tokens ?? 0,
+  };
+  return { text, usage, provider: "openrouter", model };
 }
 
 export function buildSummaryPrompt(summaryStyle: string, contentText: string): string {
