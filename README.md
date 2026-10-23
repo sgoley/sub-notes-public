@@ -5,7 +5,7 @@ AI-powered content summaries for YouTube videos and Substack posts. Self-hosted,
 ## Features
 
 - **YouTube** — Subscribe to channels/feeds or process individual URLs
-- **AI Summaries** — Detailed markdown summaries via Gemini 2.0 Flash
+- **AI Summaries** — Detailed markdown summaries via Google Gemini or OpenRouter
 - **Automatic Tagging** — AI categorization with 30+ topic tags
 - **Token Usage Tracking** — Monitor API costs per summary
 - **Obsidian Sync** — Auto-save summaries to a local Obsidian vault
@@ -26,11 +26,11 @@ docker-compose.yml
 
 **Frontend**: React, TypeScript, Vite, shadcn/ui, Tailwind CSS, TanStack Query, React Router
 
-**Backend**: Bun, TypeScript — handles YouTube metadata, transcript fetching, Gemini API calls, Obsidian file writes
+**Backend**: Bun, TypeScript — handles YouTube metadata, transcript fetching, Gemini/OpenRouter API calls, Obsidian file writes
 
 **Database**: PocketBase (SQLite) — collections: `subscriptions`, `content_summaries`, `tags`, `content_summary_tags`, `settings`
 
-**AI**: Google Gemini 3.1 Flash Lite via direct REST API
+**AI**: Google Gemini or OpenRouter through direct HTTPS API calls from the backend. No model gateway or additional AI service is required.
 
 ## Quick Start
 
@@ -50,16 +50,31 @@ docker compose up --build
 ```env
 # PocketBase admin credentials
 PB_ADMIN_EMAIL=admin@localhost.local
-PB_ADMIN_PASSWORD=changeme_strong_password
+PB_ADMIN_PASSWORD=change-this-password
 
-# API Keys (required)
-YOUTUBE_API_KEY=AIza...
-GEMINI_API_KEY=AIza...
+# Required for YouTube metadata
+YOUTUBE_API_KEY=your-youtube-api-key
+
+# Choose one LLM provider
+LLM_PROVIDER=gemini
+LLM_MODEL=
+GEMINI_API_KEY=your-gemini-api-key
+# Or use OpenRouter instead:
+# LLM_PROVIDER=openrouter
+# OPENROUTER_API_KEY=your-openrouter-api-key
 
 # Obsidian vault sync (optional)
 OBSIDIAN_VAULT_PATH=/path/to/your/vault
 OBSIDIAN_SUBFOLDER=sub-notes
 ```
+
+## LLM provider setup
+
+The self-hosted Docker stack uses PocketBase and the included Bun backend. AI requests go directly from that backend to the selected provider; provider keys are not built into the frontend or sent to the browser. Configure either Gemini or OpenRouter in `.env`.
+
+For Gemini, set `LLM_PROVIDER=gemini` and `GEMINI_API_KEY` (the default model is `gemini-2.5-flash`). For OpenRouter, set `LLM_PROVIDER=openrouter` and `OPENROUTER_API_KEY` (the default model is `openai/gpt-4.1-mini`). Set `LLM_MODEL` only if you want a different model. Then run `docker compose up --build`.
+
+The YouTube Data API key remains separately required for video and playlist metadata. Obsidian sync is optional. The self-hosted Docker flow does not require a hosted database or an external model gateway.
 
 ## Backend API
 

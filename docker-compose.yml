@@ -24,14 +24,20 @@ services:
     volumes:
       - ${OBSIDIAN_VAULT_PATH:-/tmp/vault-placeholder}:/vault:rw
     environment:
-      - PB_URL=http://pocketbase:8090
-      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL}
-      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD}
-      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - OBSIDIAN_SUBFOLDER=${OBSIDIAN_SUBFOLDER:-sub-notes}
-      - BACKEND_URL=http://backend:3333
-      - PORT=3333
+      PB_URL: http://pocketbase:8090
+      PB_ADMIN_EMAIL: ${PB_ADMIN_EMAIL}
+      PB_ADMIN_PASSWORD: ${PB_ADMIN_PASSWORD}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+      LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
+      LLM_MODEL: ${LLM_MODEL:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_SITE_URL: ${OPENROUTER_SITE_URL:-}
+      OPENROUTER_APP_NAME: ${OPENROUTER_APP_NAME:-}
+      OBSIDIAN_SUBFOLDER: ${OBSIDIAN_SUBFOLDER:-sub-notes}
+      BACKEND_URL: http://backend:3333
+      PORT: 3333
     depends_on:
       pocketbase:
         condition: service_healthy
