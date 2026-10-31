@@ -72,7 +72,16 @@ OBSIDIAN_SUBFOLDER=sub-notes
 
 The self-hosted Docker stack uses PocketBase and the included Bun backend. AI requests go directly from that backend to the selected provider; provider keys are not built into the frontend or sent to the browser. Configure either Gemini or OpenRouter in `.env`.
 
-For Gemini, set `LLM_PROVIDER=gemini` and `GEMINI_API_KEY` (the default model is `gemini-2.5-flash`). For OpenRouter, set `LLM_PROVIDER=openrouter` and `OPENROUTER_API_KEY` (the default model is `openai/gpt-4.1-mini`). Set `LLM_MODEL` only if you want a different model. Then run `docker compose up --build`.
+`LLM_MODEL` selects the model used for all new summaries. Leave it blank to use the provider default, or set it to a model ID supported by the selected provider. Gemini model IDs are used directly; OpenRouter model IDs use the `provider/model` form (for example, `google/gemini-2.5-flash`). The defaults are:
+
+| `LLM_PROVIDER` | Required key | Default model |
+| --- | --- | --- |
+| `gemini` | `GEMINI_API_KEY` | `gemini-2.5-flash` |
+| `openrouter` | `OPENROUTER_API_KEY` | `openai/gpt-4.1-mini` |
+
+For example, to use another OpenRouter model, set `LLM_PROVIDER=openrouter`, `OPENROUTER_API_KEY`, and `LLM_MODEL` to that model's OpenRouter ID. To use Gemini, set `LLM_PROVIDER=gemini`, `GEMINI_API_KEY`, and optionally a Gemini model ID in `LLM_MODEL`. Then run `docker compose up --build`.
+
+This standalone Compose setup configures one backend model for all users. Frontend model-picker build variables such as `VITE_LLM_MODEL` and `VITE_OPENROUTER_MODELS` are not used by this version.
 
 The YouTube Data API key remains separately required for video and playlist metadata. Obsidian sync is optional. The self-hosted Docker flow does not require a hosted database or an external model gateway.
 
